@@ -34,59 +34,50 @@ const questions = [
 const questionsElement = document.getElementById("questions");
 const submitBtn = document.getElementById("submit");
 const scoreDiv = document.getElementById("score");
-
-// Load saved progress from sessionStorage
 let userAnswers = JSON.parse(sessionStorage.getItem("progress")) || {};
 
-// Render the quiz questions
 function renderQuestions() {
-  questionsElement.innerHTML = ""; // Clear previous content
+  questionsElement.innerHTML = "";
   questions.forEach((q, index) => {
     const div = document.createElement("div");
-
-    // Question text
     const questionText = document.createElement("p");
     questionText.textContent = q.question;
     div.appendChild(questionText);
-
-    // Choices
     q.choices.forEach(choice => {
       const label = document.createElement("label");
       const input = document.createElement("input");
       input.type = "radio";
       input.name = `question-${index}`;
       input.value = choice;
-
-      // Check if this choice is already selected
       if (userAnswers[index] === choice) {
         input.checked = true;
+        input.setAttribute("checked", "true");
       }
-
-      // On change, save to sessionStorage
-      input.addEventListener("change", () => {
+      input.addEventListener("change", (e) => {
         userAnswers[index] = choice;
         sessionStorage.setItem("progress", JSON.stringify(userAnswers));
+        const radios = document.querySelectorAll(`input[name="question-${index}"]`);
+        radios.forEach(r => {
+          r.removeAttribute("checked");
+          r.checked = false;
+        });
+        e.target.checked = true;
+        e.target.setAttribute("checked", "true");
       });
-
       label.appendChild(input);
       label.appendChild(document.createTextNode(choice));
       div.appendChild(label);
       div.appendChild(document.createElement("br"));
     });
-
     questionsElement.appendChild(div);
   });
 }
 
-// Calculate and display score
 submitBtn.addEventListener("click", () => {
   let score = 0;
   questions.forEach((q, index) => {
-    if (userAnswers[index] === q.answer) {
-      score++;
-    }
+    if (userAnswers[index] === q.answer) score++;
   });
-
   scoreDiv.textContent = `Your score is ${score} out of ${questions.length}.`;
   localStorage.setItem("score", score);
 });
